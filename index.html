@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Resume Builder</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url("https://img.freepik.com/free-vector/gradient-geometric-shapes-dark-background_52683-33027.jpg?semt=ais_hybrid&w=740&q=80") no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.65);
+    z-index: 0;
+  }
+  .container {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+    width: 600px;
+    text-align: center;
+  }
+  h1 { margin-bottom: 20px; font-size: 26px; color: #333; }
+  form { display: flex; flex-direction: column; gap: 15px; }
+  input, textarea {
+    padding: 12px; border-radius: 8px; border: 1px solid #ddd;
+    font-size: 14px; width: 100%; box-sizing: border-box;
+  }
+  input:focus, textarea:focus { border-color: #6c63ff; outline: none; }
+  button {
+    padding: 12px; background: #000; border: none; border-radius: 8px;
+    color: #fff; font-size: 16px; cursor: pointer;
+  }
+  button:hover { background: #333; }
+  #resumeOutput {
+    background: rgba(255,255,255,0.85);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: left;
+    margin-top: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Resume Builder</h1>
+  <form id="resumeForm">
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <textarea id="skills" placeholder="Skills (comma separated)" required></textarea>
+    <textarea id="education" placeholder="Education" required></textarea>
+    <textarea id="projects" placeholder="Projects" required></textarea>
+    <button type="submit">Generate Resume</button>
+  </form>
+  
+  <div id="resumeOutput"></div>
+</div>
+
+<script>
+const form = document.getElementById("resumeForm");
+const resumeOutput = document.getElementById("resumeOutput");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    skills: document.getElementById("skills").value.split(",").map(s => s.trim()),
+    education: document.getElementById("education").value,
+    projects: document.getElementById("projects").value
+  };
+
+  resumeOutput.textContent = "Generating resume...";
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/generate_resume", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (result.file_ready) {
+      resumeOutput.innerHTML = "Resume generated successfully!<br>";
+
+      // Download button
+      let downloadLink = document.createElement("a");
+      downloadLink.href = "http://127.0.0.1:5000/download_resume";
+      downloadLink.textContent = "Download PDF";
+      downloadLink.id = "downloadLink";
+      downloadLink.style.display = "inline-block";
+      downloadLink.style.marginTop = "10px";
+      downloadLink.style.color = "#6c63ff";
+      downloadLink.style.fontWeight = "bold";
+      downloadLink.style.textDecoration = "underline";
+
+      resumeOutput.appendChild(downloadLink);
+    } else {
+      resumeOutput.textContent = "Error generating resume.";
+    }
+  } catch (err) {
+    console.error(err);
+    resumeOutput.textContent = "Server error! Is Flask running on port 5000?";
+  }
+});
+</script>
+</body>
+</html>
