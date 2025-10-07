@@ -10,14 +10,14 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# wkhtmltopdf setup
-wkhtmltopdf_path = os.getenv("WKHTMLTOPDF_PATH")  # from .env
+# wkhtmltopdf setup (fallback to default if not set)
+wkhtmltopdf_path = os.getenv("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf")
 pdfkit_config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
 
 # Store last generated PDF path
 last_resume_path = None
 
-# Home route (optional)
+# Home route
 @app.route('/')
 def home():
     return "Flask backend is running!"
@@ -114,4 +114,6 @@ def download_resume():
     return jsonify({"error": "No resume found"}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use Render-provided PORT or fallback to 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
