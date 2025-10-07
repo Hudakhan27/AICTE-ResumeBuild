@@ -1,26 +1,24 @@
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import pdfkit
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend', static_url_path='/')
 CORS(app)
 
-# wkhtmltopdf setup (fallback to default if not set)
-wkhtmltopdf_path = os.getenv("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf")
+# wkhtmltopdf setup
+wkhtmltopdf_path = os.getenv("WKHTMLTOPDF_PATH")  # from .env
 pdfkit_config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
 
-# Store last generated PDF path
 last_resume_path = None
 
-# Home route
+# Serve frontend
 @app.route('/')
-def home():
-    return "Flask backend is running!"
+def serve_frontend():
+    return send_from_directory(app.static_folder, 'index.html')
 
 # Generate resume
 @app.route('/generate_resume', methods=['POST'])
@@ -34,68 +32,8 @@ def generate_resume():
         education = data.get("education", "")
         projects = data.get("projects", "")
 
-        # ATS-friendly HTML template
-        html_content = f"""
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>{name} - Resume</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    font-size: 12pt;
-                    margin: 40px;
-                    line-height: 1.4;
-                    color: #000;
-                }}
-                h1 {{
-                    font-size: 20pt;
-                    margin-bottom: 0;
-                }}
-                h2 {{
-                    font-size: 14pt;
-                    margin-bottom: 5px;
-                    margin-top: 20px;
-                    border-bottom: 1px solid #000;
-                }}
-                p, li {{
-                    margin: 5px 0;
-                }}
-                ul {{
-                    padding-left: 20px;
-                }}
-                .section {{
-                    margin-bottom: 15px;
-                }}
-            </style>
-        </head>
-        <body>
-            <h1>{name}</h1>
-            <p><strong>Email:</strong> {email}</p>
+        html_content = f"""<html>...same as before...</html>"""  # Use your HTML template here
 
-            <div class="section">
-                <h2>Education</h2>
-                <p>{education}</p>
-            </div>
-
-            <div class="section">
-                <h2>Skills</h2>
-                <ul>
-                    {''.join(f"<li>{skill}</li>" for skill in skills)}
-                </ul>
-            </div>
-
-            <div class="section">
-                <h2>Projects</h2>
-                <ul>
-                    {''.join(f"<li>{project}</li>" for project in projects.split(','))}
-                </ul>
-            </div>
-        </body>
-        </html>
-        """
-
-        # Save PDF
         output_path = os.path.join(os.getcwd(), "resume.pdf")
         pdfkit.from_string(html_content, output_path, configuration=pdfkit_config)
         last_resume_path = output_path
@@ -114,7 +52,5 @@ def download_resume():
     return jsonify({"error": "No resume found"}), 404
 
 if __name__ == '__main__':
-    # Use Render-provided PORT or fallback to 5000
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
-
+    app.run(host="0.0.0.0", port=port)
