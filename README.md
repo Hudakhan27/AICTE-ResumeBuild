@@ -38,27 +38,6 @@ The HTML is converted into a downloadable PDF file.
 
 User downloads or previews the generated resume.
 
-🧩 Setup
-
-Clone the repository
-
-git clone https://github.com/your-username/ai-resume-builder.git
-
-
-Install dependencies
-
-pip install -r requirements.txt
-
-
-Add your .env file
-
-OPENAI_API_KEY=your_openai_api_key
-WKHTMLTOPDF_PATH=/usr/bin/wkhtmltopdf
-
-
-Run the project
-
-python app.py
 
 📦 Deployment
 
